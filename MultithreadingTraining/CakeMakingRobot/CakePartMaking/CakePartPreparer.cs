@@ -22,8 +22,7 @@ public class CakePartPreparer<T>(IWareHouse wareHouse) where T : CakeMakingPart,
     
     private async Task AddIngredientFromWareHouseAsync(CakeMakingPart cakePart, KeyValuePair<string, RawMaterial> ingredient)
     {
-        var takeTask = wareHouse.TakeAsync(ingredient.Value);
-        var addTask = cakePart.AddAsync(ingredient.Value);
-        await Task.WhenAll(takeTask, addTask);
+        await (wareHouse.TakeAsync(ingredient.Value))
+            .ContinueWith(_ => cakePart.AddAsync(ingredient.Value), TaskContinuationOptions.OnlyOnRanToCompletion);
     }
 }

@@ -7,6 +7,7 @@ namespace MultithreadingTraining.WareHouse;
 public class WareHouse(Dictionary<string, RawMaterial> items) : IWareHouse
 {
     public Dictionary<string, RawMaterial> Items { get; set; } = items;
+    private readonly object _setQuantityLockObject = new();
 
     public async Task<double> AddAsync(RawMaterial rawMaterial)
     {
@@ -31,36 +32,35 @@ public class WareHouse(Dictionary<string, RawMaterial> items) : IWareHouse
         return Task.FromResult(item.Quantity);
     }
 
-    private async Task<double> SetQuantityAsync(RawMaterial rawMaterial, Operation operation)
+    private Task<double> SetQuantityAsync(RawMaterial rawMaterial, Operation operation)
     {
-        var currentQuantity = await CalculateQuantityAsync(rawMaterial);
-        Thread.Sleep(RandomTimelapseGenerator.Generate());
-
-        switch (operation)
+        lock (_setQuantityLockObject)
         {
-            case Operation.Plus:
-                currentQuantity += rawMaterial.Quantity;
-                break;
-            case Operation.Minus:
-                if (currentQuantity < rawMaterial.Quantity)
-                {
-                    var requiredQuantity = rawMaterial.Quantity - currentQuantity;
-                    throw new NotEnoughRawMaterialException(rawMaterial.GetType().Name, requiredQuantity);
-                }
-                currentQuantity -= rawMaterial.Quantity;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
+            // await can not be used in lock block
+            var currentQuantity = CalculateQuantityAsync(rawMaterial).Result;
+            Thread.Sleep(RandomTimelapseGenerator.Generate());
+
+            switch (operation)
+            {
+                case Operation.Plus:
+                    currentQuantity += rawMaterial.Quantity;
+                    break;
+                case Operation.Minus:
+                    if (currentQuantity < rawMaterial.Quantity)
+                    {
+                        var requiredQuantity = rawMaterial.Quantity - currentQuantity;
+                        throw new NotEnoughRawMaterialException(rawMaterial.GetType().Name, requiredQuantity);
+                    }
+                    currentQuantity -= rawMaterial.Quantity;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
+            }
+            var item = Items[rawMaterial.GetType().Name];
+            item.Quantity = currentQuantity;
+            return Task.FromResult(currentQuantity);
         }
-        var item = Items[rawMaterial.GetType().Name];
-        item.Quantity = currentQuantity;
-        return currentQuantity;
-    }
-    
-    private void LogWareHouseStatus()
-    {
-        foreach (var item in Items)
-            Console.WriteLine($"Warehouse Status {item.Key}: {item.Value.Quantity}");
+       
     }
 
     private enum Operation

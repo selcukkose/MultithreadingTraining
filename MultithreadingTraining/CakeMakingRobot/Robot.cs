@@ -28,6 +28,9 @@ public class Robot : ICakeMakingRobot
 
         try
         {
+            /***
+             * For the following operation Parallel.Invoke method could be used but it is not suitable for async operations.
+             */
             var pastry = _pastryPreparer.PrepareAsync();
             var cream = _creamPreparer.PrepareAsync();
             var chocolate = _chocolatePreparer.PrepareAsync();

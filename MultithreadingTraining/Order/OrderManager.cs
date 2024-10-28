@@ -1,3 +1,4 @@
+using MultithreadingTraining.CakeMakingRobot;
 using MultithreadingTraining.Common.Exceptions;
 using MultithreadingTraining.Interfaces;
 using MultithreadingTraining.Order.Interfaces;
@@ -20,31 +21,31 @@ public class OrderManager(List<ICakeMakingRobot> robots, ISupplier supplier) : I
                     Thread.Sleep(100);
                     continue;
                 }
-                
-                var availableRobots = GetAvailableRobots();
-                if (availableRobots.Count == 0)
-                {
-                    Console.WriteLine("There is no available robot to prepare the order.");
-                    continue;
-                }
 
-                var robot = availableRobots.FirstOrDefault();
-                var order = OrderQueue.Dequeue();
-                try
-                {
-                    await robot?.PrepareOrderAsync(order);
-                }
-                catch (NotEnoughRawMaterialException e)
-                {
-                    Console.WriteLine(e.Message);
-                    OrderQueue.Enqueue(order);
-                    await supplier.SupplyAsync(e.RawMaterialName, e.RequiredQuantity);
-                }
+                Parallel.ForEach(robots, async robot => await ManageRobot(robot));
             }
             catch
             {
                 break;
             }
+    }
+
+    private async Task ManageRobot(ICakeMakingRobot robot)
+    {
+        if (robot.IsBusy || OrderQueue.Count == 0)
+            return;
+        
+        var order = OrderQueue.Dequeue();
+        try
+        {
+            await robot?.PrepareOrderAsync(order);
+        }
+        catch (NotEnoughRawMaterialException e)
+        {
+            Console.WriteLine(e.Message);
+            OrderQueue.Enqueue(order);
+            await supplier.SupplyAsync(e.RawMaterialName, e.RequiredQuantity);
+        }
     }
 
     private void ListenForOrders()
