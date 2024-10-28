@@ -5,6 +5,6 @@ namespace MultithreadingTraining.Interfaces;
 public interface ICakeMakingRobot
 {
     bool IsBusy { get; }
-    Cake.Cake MakeCake();
-    IOrder PrepareOrder(IOrder order);
+    Task<Cake.Cake> MakeCakeAsync();
+    Task<IOrder> PrepareOrderAsync(IOrder order);
 }

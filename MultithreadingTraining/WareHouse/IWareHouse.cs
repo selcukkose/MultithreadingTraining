@@ -5,6 +5,6 @@ namespace MultithreadingTraining.WareHouse;
 public interface IWareHouse
 {
     public Dictionary<string, RawMaterial> Items { get; set; }
-    double Take(RawMaterial rawMaterial);
-    double Add(RawMaterial rawMaterial);
+    Task<double> TakeAsync(RawMaterial rawMaterial);
+    Task<double> AddAsync(RawMaterial rawMaterial);
 }

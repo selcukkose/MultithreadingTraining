@@ -6,20 +6,24 @@ namespace MultithreadingTraining.CakeMakingRobot.CakePartMaking;
 
 public class CakePartPreparer<T>(IWareHouse wareHouse) where T : CakeMakingPart, new()
 {
-    public T Prepare()
+    
+    public Task<T> PrepareAsync()
     {
         Console.WriteLine($"Preparing {typeof(T).Name}...");
         var cakePart = new T();
+        var addIngredientTaskList = new List<Task>();
 
-        foreach (var ingredient in cakePart.Ingredients) AddIngredientFromWareHouse(cakePart, ingredient);
+        foreach (var ingredient in cakePart.Ingredients) addIngredientTaskList.Add(AddIngredientFromWareHouseAsync(cakePart, ingredient)); 
 
+        Task.WaitAll(addIngredientTaskList.ToArray());
         Console.WriteLine($"Prepared {typeof(T).Name}.");
-        return cakePart;
+        return Task.FromResult(cakePart);
     }
-
-    private void AddIngredientFromWareHouse(CakeMakingPart cakePart, KeyValuePair<string, RawMaterial> ingredient)
+    
+    private async Task AddIngredientFromWareHouseAsync(CakeMakingPart cakePart, KeyValuePair<string, RawMaterial> ingredient)
     {
-        wareHouse.Take(ingredient.Value);
-        cakePart.Add(ingredient.Value);
+        var takeTask = wareHouse.TakeAsync(ingredient.Value);
+        var addTask = cakePart.AddAsync(ingredient.Value);
+        await Task.WhenAll(takeTask, addTask);
     }
 }

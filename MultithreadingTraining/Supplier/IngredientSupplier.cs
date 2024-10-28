@@ -14,16 +14,16 @@ public class IngredientSupplier : ISupplier
         _wareHouse = wareHouse;
     }
 
-    public double Supply(RawMaterial item)
+    public async Task<double> SupplyAsync(RawMaterial item)
     {
         Thread.Sleep(RandomTimelapseGenerator.Generate());
-        return _wareHouse.Add(item);
+        return await _wareHouse.AddAsync(item);
     }
 
-    public double Supply(string rawMaterialName, double quantity)
+    public async Task<double> SupplyAsync(string rawMaterialName, double quantity)
     {
         Thread.Sleep(RandomTimelapseGenerator.Generate());
-        return _wareHouse.Add(GenerateRawMaterial(rawMaterialName, quantity));
+        return await _wareHouse.AddAsync(GenerateRawMaterial(rawMaterialName, quantity));
     }
 
     public void ManageWareHouseRawMaterialStatus()
@@ -35,7 +35,7 @@ public class IngredientSupplier : ISupplier
                 var itemsHasQuantityLessThanLimit = _wareHouse.Items.Where(item => item.Value.Quantity < limit);
 
                 foreach (var item in itemsHasQuantityLessThanLimit)
-                    Supply(GenerateRawMaterial(item.Key, 3000));
+                    SupplyAsync(GenerateRawMaterial(item.Key, 3000));
 
                 Thread.Sleep(1000);
             }

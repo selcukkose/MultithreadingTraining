@@ -29,6 +29,6 @@ public class Cafe
         _orderManager = new OrderManager([_cakeMakingRobot], _ingredientSupplier);
 
         (new Thread(x => _ingredientSupplier.ManageWareHouseRawMaterialStatus())).Start();
-        (new Thread(x => _orderManager.ManageOrders())).Start();
+        (new Thread(x => _orderManager.ManageOrdersAsync())).Start();
     }
 }

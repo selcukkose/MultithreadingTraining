@@ -9,12 +9,12 @@ public abstract class CakeMakingPart
     private List<RawMaterial> Mixture { get; } = [];
     public double Quantity => Mixture.Sum(x => x.Quantity);
 
-    public CakeMakingPart Add(RawMaterial ingredient)
+    public Task<CakeMakingPart> AddAsync(RawMaterial ingredient)
     {
         Thread.Sleep(RandomTimelapseGenerator.Generate());
         Mixture.Add(ingredient);
 
-        return this;
+        return  Task.FromResult(this);
     }
 
     public CakeMakingPart Mix()

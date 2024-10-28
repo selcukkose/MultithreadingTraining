@@ -9,7 +9,7 @@ public class OrderManager(List<ICakeMakingRobot> robots, ISupplier supplier) : I
 {
     public Queue<Order> OrderQueue { get; } = new();
 
-    public void ManageOrders()
+    public async Task ManageOrdersAsync()
     {
         (new Thread(ListenForOrders)).Start();
         while (true)
@@ -32,13 +32,13 @@ public class OrderManager(List<ICakeMakingRobot> robots, ISupplier supplier) : I
                 var order = OrderQueue.Dequeue();
                 try
                 {
-                    robot?.PrepareOrder(order);
+                    await robot?.PrepareOrderAsync(order);
                 }
                 catch (NotEnoughRawMaterialException e)
                 {
                     Console.WriteLine(e.Message);
                     OrderQueue.Enqueue(order);
-                    supplier.Supply(e.RawMaterialName, e.RequiredQuantity);
+                    await supplier.SupplyAsync(e.RawMaterialName, e.RequiredQuantity);
                 }
             }
             catch

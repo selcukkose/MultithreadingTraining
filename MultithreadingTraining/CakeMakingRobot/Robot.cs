@@ -20,7 +20,7 @@ public class Robot : ICakeMakingRobot
 
     public bool IsBusy { get; private set; }
 
-    public Cake.Cake MakeCake()
+    public async Task<Cake.Cake> MakeCakeAsync()
     {
         Console.WriteLine("Making cake...");
         IsBusy = true;
@@ -28,12 +28,12 @@ public class Robot : ICakeMakingRobot
 
         try
         {
-            var pastry = _pastryPreparer.Prepare();
-            cake.Add(pastry);
-            var cream = _creamPreparer.Prepare();
-            cake.Add(cream);
-            var chocolate = _chocolatePreparer.Prepare();
-            cake.Add(chocolate);
+            var pastry = _pastryPreparer.PrepareAsync();
+            var cream = _creamPreparer.PrepareAsync();
+            var chocolate = _chocolatePreparer.PrepareAsync();
+            cake.Add(await pastry);
+            cake.Add(await cream);
+            cake.Add(await chocolate);
         }
         catch (Exception e)
         {
@@ -46,11 +46,11 @@ public class Robot : ICakeMakingRobot
         return cake;
     }
 
-    public IOrder PrepareOrder(IOrder order)
+    public async Task<IOrder> PrepareOrderAsync(IOrder order)
     {
-        var products = order.OrderLines.Select(orderLine => MakeCake()).ToList();
+        var products = order.OrderLines.Select(orderLine => MakeCakeAsync()).ToList();
 
-        order.Products = products;
+        order.Products = (await Task.WhenAll(products)).ToList();
         return order;
     }
 }

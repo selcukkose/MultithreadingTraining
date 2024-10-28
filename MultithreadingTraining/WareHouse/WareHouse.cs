@@ -8,32 +8,32 @@ public class WareHouse(Dictionary<string, RawMaterial> items) : IWareHouse
 {
     public Dictionary<string, RawMaterial> Items { get; set; } = items;
 
-    public double Add(RawMaterial rawMaterial)
+    public async Task<double> AddAsync(RawMaterial rawMaterial)
     {
-        var newQuantity = SetQuantity(rawMaterial, Operation.Plus);
+        var newQuantity = await SetQuantityAsync(rawMaterial, Operation.Plus);
         Console.WriteLine($"Warehouse add {rawMaterial.GetType().Name}: {rawMaterial.Quantity}");
         return newQuantity;
     }
 
-    public double Take(RawMaterial rawMaterial)
+    public async Task<double> TakeAsync(RawMaterial rawMaterial)
     {
-        var newQuantity = SetQuantity(rawMaterial, Operation.Minus);
+        var newQuantityTask = await SetQuantityAsync(rawMaterial, Operation.Minus);
         Console.WriteLine($"Warehouse take {rawMaterial.GetType().Name}: {rawMaterial.Quantity}");
-        return newQuantity;
+        return newQuantityTask;
     }
 
-    private double CalculateQuantity(RawMaterial rawMaterial)
+    private Task<double> CalculateQuantityAsync(RawMaterial rawMaterial)
     {
         Thread.Sleep(RandomTimelapseGenerator.Generate());
         var item = Items[rawMaterial.GetType().Name];
         if (item == null)
             throw new InvalidOperationException("Item not found");
-        return item.Quantity;
+        return Task.FromResult(item.Quantity);
     }
 
-    private double SetQuantity(RawMaterial rawMaterial, Operation operation)
+    private async Task<double> SetQuantityAsync(RawMaterial rawMaterial, Operation operation)
     {
-        var currentQuantity = CalculateQuantity(rawMaterial);
+        var currentQuantity = await CalculateQuantityAsync(rawMaterial);
         Thread.Sleep(RandomTimelapseGenerator.Generate());
 
         switch (operation)
